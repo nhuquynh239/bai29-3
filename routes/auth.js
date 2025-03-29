@@ -1,39 +1,45 @@
 var express = require('express');
 var router = express.Router();
 var userController = require('../controllers/users')
-let { CreateSuccessResponse, CreateErrorResponse } = require('../utils/responseHandler')
+let { CreateSuccessResponse, CreateCookieResponse } = require('../utils/responseHandler')
 let jwt = require('jsonwebtoken')
 let constants = require('../utils/constants')
 let { check_authentication } = require('../utils/check_auth')
 let crypto = require('crypto')
 let mailer = require('../utils/mailer')
-let {SignUpValidator,LoginValidator,validate} = require('../utils/validator')
+let { SignUpValidator, LoginValidator, validate } = require('../utils/validator')
 
 
-router.post('/signup',SignUpValidator,validate, async function (req, res, next) {
-        try {
-            let newUser = await userController.CreateAnUser(
-                req.body.username, req.body.password, req.body.email, 'user'
-            )
-            CreateSuccessResponse(res, 200, newUser)
-        } catch (error) {
-            next(error)
-        }
-    });
-router.post('/login',LoginValidator,validate, async function (req, res, next) {
+
+router.post('/signup', SignUpValidator, validate, async function (req, res, next) {
+    try {
+        let newUser = await userController.CreateAnUser(
+            req.body.username, req.body.password, req.body.email, 'user'
+        )
+        CreateSuccessResponse(res, 200, newUser)
+    } catch (error) {
+        next(error)
+    }
+});
+router.post('/login', LoginValidator, validate, async function (req, res, next) {
     try {
         let user_id = await userController.CheckLogin(
             req.body.username, req.body.password
         )
+        let exp = (new Date(Date.now() + 60 * 60 * 1000)).getTime();
         let token = jwt.sign({
             id: user_id,
-            exp: (new Date(Date.now() + 60 * 60 * 1000)).getTime()
+            exp: exp
         }, constants.SECRET_KEY)
+        CreateCookieResponse(res, 'token', token, exp);
         CreateSuccessResponse(res, 200, token)
     } catch (error) {
         next(error)
     }
 });
+router.get('/logout', function (req, res, next) {
+    res.cookie("token", "")
+})
 router.get('/me', check_authentication, function (req, res, next) {
     CreateSuccessResponse(res, 200, req.user)
 })

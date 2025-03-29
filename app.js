@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose')
 let { CreateSuccessResponse, CreateErrorResponse } = require('./utils/responseHandler')
+let constants = require("./utils/constants")
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -24,7 +25,7 @@ app.set('view engine', 'pug');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser(constants.SECRET_KEY_COOKIE));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);

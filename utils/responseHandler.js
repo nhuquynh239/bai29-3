@@ -9,5 +9,13 @@ module.exports = {
             success: false,
             message: message
         });
+    },
+    CreateCookieResponse: function (res,key,value,exp) {
+        res.cookie(key, value, {
+            httpOnly: true,
+            expires: new Date(exp),
+            signed: true
+        });
     }
+
 }
